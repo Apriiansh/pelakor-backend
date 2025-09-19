@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const pool = require('./db'); 
-
+const path = require('path');
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users'); 
 const laporanRoutes = require('./routes/laporan'); 
@@ -34,6 +34,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/laporan', laporanRoutes);
 app.use('/api/disposisi', disposisiRoutes);
 app.use('/api/tindaklanjut', tindakRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Root endpoint
 app.get('/', (req, res) => {
