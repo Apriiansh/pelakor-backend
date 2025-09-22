@@ -49,6 +49,8 @@ router.post('/login', async (req, res) => {
       nik: user.nik,
       nama: user.nama,
       email: user.email,
+      jabatan: user.jabatan,
+      unit_kerja: user.unit_kerja,
       role: user.role,
       id: user.id
     };

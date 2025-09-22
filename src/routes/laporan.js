@@ -70,6 +70,65 @@ router.post('/', authenticateToken, upload.single('lampiran'), async (req, res) 
 });
 
 /**
+ * GET /api/laporan/selesai
+ * Ambil daftar laporan yang statusnya "selesai"
+ * PENTING: Route ini harus didefinisikan SEBELUM route /:id_laporan
+ */
+router.get('/selesai', authenticateToken, async (req, res) => {
+  try {
+    const client = await pool.connect();
+    let query, params;
+
+    // Role check: 
+    // - Pegawai: hanya laporan miliknya yang selesai
+    // - Kabbag/Admin: semua laporan selesai
+    // - Subbag: laporan selesai yang pernah jadi tanggung jawabnya
+    if (req.user.role === 'pegawai') {
+      query = `
+        SELECT l.*, u.nama AS pelapor
+        FROM laporan l
+        JOIN users u ON u.nik = l.nik_pelapor
+        WHERE l.nik_pelapor = $1 AND l.status_laporan = 'selesai'
+        ORDER BY l.updated_at DESC NULLS LAST
+      `;
+      params = [req.user.nik];
+    } else if (req.user.role === 'subbag_umum') {
+      query = `
+        SELECT l.*, u.nama AS pelapor
+        FROM laporan l
+        JOIN users u ON u.nik = l.nik_pelapor
+        WHERE l.status_laporan = 'selesai'
+        AND l.id_laporan IN (
+          SELECT DISTINCT id_laporan
+          FROM tindak_lanjut
+          WHERE nik_subbag = $1
+        )
+        ORDER BY l.updated_at DESC NULLS LAST
+      `;
+      params = [req.user.nik];
+    } else {
+      // kabbag_umum / admin
+      query = `
+        SELECT l.*, u.nama AS pelapor
+        FROM laporan l
+        JOIN users u ON u.nik = l.nik_pelapor
+        WHERE l.status_laporan = 'selesai'
+        ORDER BY l.updated_at DESC NULLS LAST
+      `;
+      params = [];
+    }
+
+    const result = await client.query(query, params);
+    client.release();
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error get laporan selesai:', err);
+    res.status(500).json({ message: 'Gagal memuat laporan selesai', error: err.message });
+  }
+});
+
+/**
  * GET /api/laporan
  * Ambil daftar laporan sesuai role
  * - Pegawai: hanya laporan miliknya
@@ -90,7 +149,7 @@ router.get('/', authenticateToken, async (req, res) => {
         ORDER BY l.created_at DESC
       `;
       params = [req.user.nik];
-    } else if (req.user.role === 'subbag') {
+    } else if (req.user.role === 'subbag_umum') {
       // Ambil laporan di mana tindak lanjut terakhir oleh user subbag ini
       query = `
         SELECT l.*, u.nama AS pelapor

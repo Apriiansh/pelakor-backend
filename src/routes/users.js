@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     const { role, jabatan } = req.query;
     const client = await pool.connect();
     
-    let query = 'SELECT nama, nik, email, role, jabatan FROM users';
+    let query = 'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users';
     let params = [];
     let conditions = [];
     
@@ -58,7 +58,7 @@ router.get('/by-role/:role', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
       [role]
     );
     
@@ -76,7 +76,7 @@ router.get('/subbag-umum', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
       ['subbag_umum']
     );
     
@@ -98,7 +98,7 @@ router.get('/kabbag', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
       ['kabbag']
     );
     
@@ -115,7 +115,7 @@ router.get('/pegawai', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
       ['pegawai']
     );
     
@@ -155,7 +155,7 @@ router.get('/by-bagian/:bagian', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
       [`%${bagian}%`]
     );
     
@@ -171,7 +171,7 @@ router.get('/me', authenticateToken, async (req, res) => {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE nik = $1',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE nik = $1',
       [req.user.nik]
     );
     client.release();
@@ -191,7 +191,7 @@ router.get('/:nik', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan FROM users WHERE nik = $1',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE nik = $1',
       [nik]
     );
     
@@ -209,7 +209,7 @@ router.get('/:nik', async (req, res) => {
 
 // POST /api/users - Tambah user baru
 router.post('/', async (req, res) => {
-  const { nama, nik, email, role, jabatan, password } = req.body;
+  const { nama, nik, email, role, jabatan, unit_kerja, password } = req.body;
   
   if (!nama || !nik || !email || !role || !password) {
     return res.status(400).json({ message: 'Nama, NIK, email, role, dan password wajib diisi' });
@@ -228,8 +228,8 @@ router.post('/', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     
     const result = await client.query(
-      'INSERT INTO users (nama, nik, email, role, jabatan, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING nama, nik, email, role, jabatan',
-      [nama, nik, email, role, jabatan || null, hashed]
+      'INSERT INTO users (nama, nik, email, role, jabatan, unit_kerja, password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING nama, nik, email, role, jabatan, unit_kerja ', 
+      [nama, nik, email, role, jabatan, unit_kerja || null, hashed]
     );
     
     client.release();
@@ -245,7 +245,7 @@ router.post('/', async (req, res) => {
 
 // PUT /api/users/:nik - Edit user (kecuali NIK)
 router.put('/:nik', async (req, res) => {
-  const { nama, email, role, jabatan, password } = req.body;
+  const { nama, email, role, jabatan, unit_kerja, password } = req.body;
   const { nik } = req.params;
   
   if (!nama || !email || !role) {
@@ -266,11 +266,11 @@ router.put('/:nik', async (req, res) => {
     
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, password=$5 WHERE nik=$6 RETURNING nama, nik, email, role, jabatan';
-      params = [nama, email, role, jabatan || null, hashed, nik];
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5, password=$6 WHERE nik=$7 RETURNING nama, nik, email, role, jabatan, unit_kerja';
+      params = [nama, email, role, jabatan, unit_kerja || null, hashed, nik];
     } else {
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4 WHERE nik=$5 RETURNING nama, nik, email, role, jabatan';
-      params = [nama, email, role, jabatan || null, nik];
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5 WHERE nik=$6 RETURNING nama, nik, email, role, jabatan, unit_kerja';
+      params = [nama, email, role, jabatan, unit_kerja || null, nik];
     }
     
     const result = await client.query(query, params);
