@@ -49,18 +49,18 @@ router.get('/', authenticateToken, async (req, res) => {
     const query = `
       SELECT 
         l.id_laporan, l.judul_laporan, l.isi_laporan, l.kategori, l.status_laporan, 
-        l.created_at, l.updated_at, l.nik_pelapor, u.nama as pelapor,
+        l.created_at, l.updated_at, l.nip_pelapor, u.nama as pelapor,
         d.catatan_disposisi, d.created_at as tanggal_disposisi,
         k.nama as kabbag_umum
       FROM laporan l
-      JOIN users u ON u.nik = l.nik_pelapor
+      JOIN users u ON u.nip = l.nip_pelapor
       JOIN disposisi d ON d.id_laporan = l.id_laporan
-      JOIN users k ON k.nik = d.nik_kabbag
-      WHERE d.nik_penanggung_jawab = $1 
+      JOIN users k ON k.nip = d.nip_kabbag
+      WHERE d.nip_penanggung_jawab = $1 
         AND l.status_laporan IN ('diproses', 'ditindaklanjuti')
       ORDER BY l.created_at ASC
     `;
-    const result = await client.query(query, [req.user.nik]);
+    const result = await client.query(query, [req.user.nip]);
     client.release();
 
     res.json(result.rows);
@@ -90,9 +90,9 @@ router.post('/:id_laporan', authenticateToken, upload.single('lampiran'), async 
     // Validasi bahwa laporan ini memang tanggung jawab user
     const checkQuery = `
       SELECT d.id_disposisi FROM disposisi d
-      WHERE d.id_laporan = $1 AND d.nik_penanggung_jawab = $2
+      WHERE d.id_laporan = $1 AND d.nip_penanggung_jawab = $2
     `;
-    const checkResult = await client.query(checkQuery, [id_laporan, req.user.nik]);
+    const checkResult = await client.query(checkQuery, [id_laporan, req.user.nip]);
     
     if (checkResult.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -101,12 +101,12 @@ router.post('/:id_laporan', authenticateToken, upload.single('lampiran'), async 
 
     // Insert tindak lanjut
     const insertQuery = `
-      INSERT INTO tindak_lanjut (id_laporan, nik_subbag, catatan_tindak_lanjut, status_tindak_lanjut, lampiran)
+      INSERT INTO tindak_lanjut (id_laporan, nip_subbag, catatan_tindak_lanjut, status_tindak_lanjut, lampiran)
       VALUES ($1, $2, $3, $4, $5) RETURNING *
     `;
     const tindakLanjutResult = await client.query(insertQuery, [
       id_laporan,
-      req.user.nik,
+      req.user.nip,
       catatan_tindak_lanjut || null,
       status || 'ditindaklanjuti',
       lampiran
@@ -124,7 +124,7 @@ router.post('/:id_laporan', authenticateToken, upload.single('lampiran'), async 
     const keteranganHistory = `Tindak lanjut: ${catatan_tindak_lanjut || 'Tanpa catatan'}`;
     await client.query(
       `INSERT INTO status_history (id_laporan, status, keterangan, changed_by) VALUES ($1, $2, $3, $4)`,
-      [id_laporan, newStatus, keteranganHistory, req.user.nik]
+      [id_laporan, newStatus, keteranganHistory, req.user.nip]
     );
 
     await client.query('COMMIT');
@@ -155,7 +155,7 @@ router.get('/:id_laporan', authenticateToken, async (req, res) => {
         t.lampiran, t.created_at, t.updated_at,
         u.nama AS penindak, u.jabatan
       FROM tindak_lanjut t
-      JOIN users u ON u.nik = t.nik_subbag
+      JOIN users u ON u.nip = t.nip_subbag
       WHERE t.id_laporan = $1
       ORDER BY t.created_at ASC
     `;
@@ -189,9 +189,9 @@ router.put('/:id_tindak_lanjut', authenticateToken, upload.single('lampiran'), a
     // Validasi bahwa tindak lanjut ini milik user
     const checkQuery = `
       SELECT t.id_laporan, t.lampiran FROM tindak_lanjut t
-      WHERE t.id_tindak_lanjut = $1 AND t.nik_subbag = $2
+      WHERE t.id_tindak_lanjut = $1 AND t.nip_subbag = $2
     `;
-    const checkResult = await client.query(checkQuery, [id_tindak_lanjut, req.user.nik]);
+    const checkResult = await client.query(checkQuery, [id_tindak_lanjut, req.user.nip]);
     
     if (checkResult.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -246,7 +246,7 @@ router.put('/:id_tindak_lanjut', authenticateToken, upload.single('lampiran'), a
       const keteranganHistory = `Update tindak lanjut: ${catatan_tindak_lanjut || 'Status diperbarui'}`;
       await client.query(
         `INSERT INTO status_history (id_laporan, status, keterangan, changed_by) VALUES ($1, $2, $3, $4)`,
-        [oldData.id_laporan, status, keteranganHistory, req.user.nik]
+        [oldData.id_laporan, status, keteranganHistory, req.user.nip]
       );
     }
 
@@ -291,9 +291,9 @@ router.delete('/:id_tindak_lanjut', authenticateToken, async (req, res) => {
     // Validasi dan ambil data
     const checkQuery = `
       SELECT t.lampiran FROM tindak_lanjut t
-      WHERE t.id_tindak_lanjut = $1 AND t.nik_subbag = $2
+      WHERE t.id_tindak_lanjut = $1 AND t.nip_subbag = $2
     `;
-    const checkResult = await client.query(checkQuery, [id_tindak_lanjut, req.user.nik]);
+    const checkResult = await client.query(checkQuery, [id_tindak_lanjut, req.user.nip]);
     
     if (checkResult.rows.length === 0) {
       await client.query('ROLLBACK');

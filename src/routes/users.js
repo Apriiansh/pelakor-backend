@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     const { role, jabatan } = req.query;
     const client = await pool.connect();
     
-    let query = 'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users';
+    let query = 'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users';
     let params = [];
     let conditions = [];
     
@@ -58,7 +58,7 @@ router.get('/by-role/:role', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       [role]
     );
     
@@ -75,7 +75,7 @@ router.get('/bupati', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['bupati']
     );
     
@@ -92,7 +92,7 @@ router.get('/wakil-bupati', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['wakil_bupati']
     );
     
@@ -109,7 +109,7 @@ router.get('/asisten', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['asisten']
     );
     
@@ -126,7 +126,7 @@ router.get('/staf-ahli', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['staf_ahli']
     );
     
@@ -143,7 +143,7 @@ router.get('/kabbag-umum', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['kabbag_umum']
     );
     
@@ -161,7 +161,7 @@ router.get('/subbag-umum', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['subbag_umum']
     );
     
@@ -183,7 +183,7 @@ router.get('/kabbag', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['kabbag']
     );
     
@@ -194,20 +194,20 @@ router.get('/kabbag', async (req, res) => {
   }
 });
 
-// GET /api/users/pegawai - Endpoint khusus untuk ambil daftar pegawai
-router.get('/pegawai', async (req, res) => {
+// GET /api/users/pelapor - Endpoint khusus untuk ambil daftar pelapor
+router.get('/pelapor', async (req, res) => {
   try {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
-      ['pegawai']
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['pelapor']
     );
     
     client.release();
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ message: 'Gagal memuat daftar pegawai', error: err.message });
+    res.status(500).json({ message: 'Gagal memuat daftar pelapor', error: err.message });
   }
 });
 
@@ -217,7 +217,7 @@ router.get('/opd', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['opd']
     );
     
@@ -240,7 +240,7 @@ router.get('/bagian', async (req, res) => {
       { id: 6, name: 'Bagian Pengadaan Barang & Jasa', code: 'pengadaan' },
       { id: 7, name: 'Bagian Umum', code: 'umum' },
       { id: 8, name: 'Bagian Organisasi', code: 'organisasi' },
-      { id: 9, name: 'Bagian Protokol Komunikasi & Pimpinan', code: 'protokol' },
+      { id: 9, name: 'Bagian Protokol Komunipasi & Pimpinan', code: 'protokol' },
       { id: 10, name: 'Bagian Perencanaan & Keuangan', code: 'renkeu' }
     ];
     
@@ -257,7 +257,7 @@ router.get('/by-bagian/:bagian', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
       [`%${bagian}%`]
     );
     
@@ -273,8 +273,8 @@ router.get('/me', authenticateToken, async (req, res) => {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE nik = $1',
-      [req.user.nik]
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE nip = $1',
+      [req.user.nip]
     );
     client.release();
     if (result.rows.length === 0) {
@@ -286,15 +286,15 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/users/:nik - Ambil detail user berdasarkan NIK
-router.get('/:nik', async (req, res) => {
+// GET /api/users/:nip - Ambil detail user berdasarkan NIP
+router.get('/:nip', async (req, res) => {
   try {
-    const { nik } = req.params;
+    const { nip } = req.params;
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE nik = $1',
-      [nik]
+      'SELECT nama, nip, email, role, jabatan, unit_kerja, created_at FROM users WHERE nip = $1',
+      [nip]
     );
     
     client.release();
@@ -311,15 +311,15 @@ router.get('/:nik', async (req, res) => {
 
 // POST /api/users - Tambah user baru
 router.post('/', async (req, res) => {
-  const { nama, nik, email, role, jabatan, unit_kerja, password } = req.body;
+  const { nama, nip, email, role, jabatan, unit_kerja, password } = req.body;
   
   // Validasi input
-  if (!nama || !nik || !email || !role || !password) {
-    return res.status(400).json({ message: 'Nama, NIK, email, role, dan password wajib diisi' });
+  if (!nama || !nip || !email || !role || !password) {
+    return res.status(400).json({ message: 'Nama, NIP, email, role, dan password wajib diisi' });
   }
 
   // Validasi role
-  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pegawai', 'opd'];
+  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pelapor', 'pelapor'];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ message: 'Role tidak valid' });
   }
@@ -327,21 +327,34 @@ router.post('/', async (req, res) => {
   try {
     const client = await pool.connect();
     
-    // Cek duplikat NIK/email
-    const cek = await client.query('SELECT 1 FROM users WHERE nik = $1 OR email = $2', [nik, email]);
+    // Di endpoint POST /api/users, tambahkan sebelum validasi:
+    console.log('Received data:', req.body);
+    console.log('Data types:', {
+        nama: typeof req.body.nama,
+        nip: typeof req.body.nip,
+        email: typeof req.body.email,
+        role: typeof req.body.role,
+        jabatan: typeof req.body.jabatan,
+        unit_kerja: typeof req.body.unit_kerja,
+        password: typeof req.body.password
+    });
+
+    // Cek duplikat NIP/email
+    const cek = await client.query('SELECT 1 FROM users WHERE nip = $1 OR email = $2', [nip, email]);
     if (cek.rows.length > 0) {
       client.release();
-      return res.status(409).json({ message: 'NIK atau email sudah terdaftar' });
+      return res.status(409).json({ message: 'NIP atau email sudah terdaftar' });
     }
     
     const hashed = await bcrypt.hash(password, 10);
     
     const result = await client.query(
-      'INSERT INTO users (nama, nik, email, role, jabatan, unit_kerja, password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at', 
-      [nama, nik, email, role, jabatan, unit_kerja || null, hashed]
+      'INSERT INTO users (nama, nip, email, role, jabatan, unit_kerja, password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING nama, nip, email, role, jabatan, unit_kerja, created_at', 
+      [nama, nip, email, role, jabatan, unit_kerja || null, hashed]
     );
     
     client.release();
+    
     
     res.status(201).json({ 
       message: 'Pengguna berhasil disimpan',
@@ -352,10 +365,10 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/users/:nik - Edit user (kecuali NIK)
-router.put('/:nik', async (req, res) => {
+// PUT /api/users/:nip - Edit user (kecuali NIP)
+router.put('/:nip', async (req, res) => {
   const { nama, email, role, jabatan, unit_kerja, password } = req.body;
-  const { nik } = req.params;
+  const { nip } = req.params;
   
   // Validasi input
   if (!nama || !email || !role) {
@@ -363,7 +376,7 @@ router.put('/:nik', async (req, res) => {
   }
 
   // Validasi role
-  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pegawai', 'opd'];
+  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pelapor', 'opd', 'pelapor'];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ message: 'Role tidak valid' });
   }
@@ -372,7 +385,7 @@ router.put('/:nik', async (req, res) => {
     const client = await pool.connect();
     
     // Cek apakah user exists
-    const checkUser = await client.query('SELECT 1 FROM users WHERE nik = $1', [nik]);
+    const checkUser = await client.query('SELECT 1 FROM users WHERE nip = $1', [nip]);
     if (checkUser.rows.length === 0) {
       client.release();
       return res.status(404).json({ message: 'Pengguna tidak ditemukan' });
@@ -382,11 +395,11 @@ router.put('/:nik', async (req, res) => {
     
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5, password=$6 WHERE nik=$7 RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at';
-      params = [nama, email, role, jabatan, unit_kerja || null, hashed, nik];
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5, password=$6 WHERE nip=$7 RETURNING nama, nip, email, role, jabatan, unit_kerja, created_at';
+      params = [nama, email, role, jabatan, unit_kerja || null, hashed, nip];
     } else {
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5 WHERE nik=$6 RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at';
-      params = [nama, email, role, jabatan, unit_kerja || null, nik];
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5 WHERE nip=$6 RETURNING nama, nip, email, role, jabatan, unit_kerja, created_at';
+      params = [nama, email, role, jabatan, unit_kerja || null, nip];
     }
     
     const result = await client.query(query, params);
@@ -401,15 +414,15 @@ router.put('/:nik', async (req, res) => {
   }
 });
 
-// DELETE /api/users/:nik - Hapus user
-router.delete('/:nik', async (req, res) => {
-  const { nik } = req.params;
+// DELETE /api/users/:nip - Hapus user
+router.delete('/:nip', async (req, res) => {
+  const { nip } = req.params;
   
   try {
     const client = await pool.connect();
     
     // Cek apakah user memiliki laporan terkait
-    const checkLaporan = await client.query('SELECT 1 FROM laporan WHERE nik_pelapor = $1 LIMIT 1', [nik]);
+    const checkLaporan = await client.query('SELECT 1 FROM laporan WHERE nip_pelapor = $1 LIMIT 1', [nip]);
     
     if (checkLaporan.rows.length > 0) {
       client.release();
@@ -418,7 +431,7 @@ router.delete('/:nik', async (req, res) => {
       });
     }
     
-    const result = await client.query('DELETE FROM users WHERE nik = $1 RETURNING nama', [nik]);
+    const result = await client.query('DELETE FROM users WHERE nip = $1 RETURNING nama', [nip]);
     client.release();
     
     if (result.rowCount === 0) {

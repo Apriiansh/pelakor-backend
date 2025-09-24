@@ -17,9 +17,9 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const client = await pool.connect();
     const query = `
-      SELECT l.id_laporan, l.judul_laporan, l.isi_laporan, l.status_laporan, l.created_at, l.nik_pelapor, u.nama as pelapor
+      SELECT l.id_laporan, l.judul_laporan, l.isi_laporan, l.status_laporan, l.created_at, l.nip_pelapor, u.nama as pelapor
       FROM laporan l
-      JOIN users u ON u.nik = l.nik_pelapor
+      JOIN users u ON u.nip = l.nip_pelapor
       WHERE l.status_laporan = 'diajukan'
       ORDER BY l.created_at ASC
     `;
@@ -39,7 +39,7 @@ router.get('/', authenticateToken, async (req, res) => {
  */
 router.post('/:id_laporan', authenticateToken, async (req, res) => {
   const { id_laporan } = req.params;
-  const { nik_penanggung_jawab, catatan_disposisi, valid } = req.body;
+  const { nip_penanggung_jawab, catatan_disposisi, valid } = req.body;
   // valid = true → diproses, valid = false → ditolak
 
   const client = await pool.connect();
@@ -57,13 +57,13 @@ router.post('/:id_laporan', authenticateToken, async (req, res) => {
 
     // Catat disposisi
     const insertLog = `
-      INSERT INTO disposisi (id_laporan, nik_kabbag, nik_penanggung_jawab, catatan_disposisi, status_disposisi)
+      INSERT INTO disposisi (id_laporan, nip_kabbag, nip_penanggung_jawab, catatan_disposisi, status_disposisi)
       VALUES ($1, $2, $3, $4, $5) RETURNING *
     `;
     const logResult = await client.query(insertLog, [
       id_laporan,
-      req.user.nik,
-      valid ? nik_penanggung_jawab : null,
+      req.user.nip,
+      valid ? nip_penanggung_jawab : null,
       catatan_disposisi || null,
       statusLaporan,
     ]);
@@ -81,7 +81,7 @@ router.post('/:id_laporan', authenticateToken, async (req, res) => {
     // Insert status_history
     await client.query(
       `INSERT INTO status_history (id_laporan, status, keterangan, changed_by) VALUES ($1, $2, $3, $4)`,
-      [id_laporan, statusLaporan, keteranganHistory, req.user.nik]
+      [id_laporan, statusLaporan, keteranganHistory, req.user.nip]
     );
 
     await client.query('COMMIT');
@@ -110,8 +110,8 @@ router.get('/:id_laporan', authenticateToken, async (req, res) => {
       SELECT d.id_disposisi, d.catatan_disposisi, d.status_disposisi, d.created_at, 
              u.nama AS kabbag_umum, p.nama AS penanggung_jawab
       FROM disposisi d
-      JOIN users u ON u.nik = d.nik_kabbag
-      LEFT JOIN users p ON p.nik = d.nik_penanggung_jawab
+      JOIN users u ON u.nip = d.nip_kabbag
+      LEFT JOIN users p ON p.nip = d.nip_penanggung_jawab
       WHERE d.id_laporan = $1
       ORDER BY d.created_at ASC
     `;

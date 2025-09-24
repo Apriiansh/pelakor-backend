@@ -23,7 +23,7 @@ const upload = multer({ storage });
 
 /**
  * POST /api/laporan
- * Buat laporan baru (pegawai)
+ * Buat laporan baru (pelapor)
  */
 router.post('/', authenticateToken, upload.single('lampiran'), async (req, res) => {
   const { judul_laporan, isi_laporan, kategori } = req.body;
@@ -37,7 +37,7 @@ router.post('/', authenticateToken, upload.single('lampiran'), async (req, res) 
   try {
     await client.query('BEGIN');
     const insertQuery = `
-      INSERT INTO laporan (judul_laporan, isi_laporan, kategori, lampiran, status_laporan, nik_pelapor, created_at)
+      INSERT INTO laporan (judul_laporan, isi_laporan, kategori, lampiran, status_laporan, nip_pelapor, created_at)
       VALUES ($1, $2, $3, $4, 'diajukan', $5, NOW()) RETURNING *
     `;
     const result = await client.query(insertQuery, [
@@ -45,14 +45,14 @@ router.post('/', authenticateToken, upload.single('lampiran'), async (req, res) 
       isi_laporan,
       kategori || null,
       filePath,
-      req.user.nik,
+      req.user.nip,
     ]);
     const laporan = result.rows[0];
 
     // Insert status_history
     await client.query(
       `INSERT INTO status_history (id_laporan, status, keterangan, changed_by) VALUES ($1, $2, $3, $4)`,
-      [laporan.id_laporan, 'diajukan', 'Laporan baru dibuat', req.user.nik]
+      [laporan.id_laporan, 'diajukan', 'Laporan baru dibuat', req.user.nip]
     );
 
     await client.query('COMMIT');
@@ -80,38 +80,38 @@ router.get('/selesai', authenticateToken, async (req, res) => {
     let query, params;
 
     // Role check: 
-    // - Pegawai: hanya laporan miliknya yang selesai
+    // - Pelapor: hanya laporan miliknya yang selesai
     // - Kabbag/Admin: semua laporan selesai
     // - Subbag: laporan selesai yang pernah jadi tanggung jawabnya
-    if (req.user.role === 'pegawai') {
+    if (req.user.role === 'pelapor') {
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
-        WHERE l.nik_pelapor = $1 AND l.status_laporan = 'selesai'
+        JOIN users u ON u.nip = l.nip_pelapor
+        WHERE l.nip_pelapor = $1 AND l.status_laporan = 'selesai'
         ORDER BY l.updated_at DESC NULLS LAST
       `;
-      params = [req.user.nik];
+      params = [req.user.nip];
     } else if (req.user.role === 'subbag_umum') {
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
+        JOIN users u ON u.nip = l.nip_pelapor
         WHERE l.status_laporan = 'selesai'
         AND l.id_laporan IN (
           SELECT DISTINCT id_laporan
           FROM tindak_lanjut
-          WHERE nik_subbag = $1
+          WHERE nip_subbag = $1
         )
         ORDER BY l.updated_at DESC NULLS LAST
       `;
-      params = [req.user.nik];
+      params = [req.user.nip];
     } else {
       // kabbag_umum / admin
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
+        JOIN users u ON u.nip = l.nip_pelapor
         WHERE l.status_laporan = 'selesai'
         ORDER BY l.updated_at DESC NULLS LAST
       `;
@@ -131,7 +131,7 @@ router.get('/selesai', authenticateToken, async (req, res) => {
 /**
  * GET /api/laporan
  * Ambil daftar laporan sesuai role
- * - Pegawai: hanya laporan miliknya
+ * - Pelapor: hanya laporan miliknya
  * - Kabbag: semua laporan
  * - Subbag: laporan yang jadi tanggung jawabnya (tindak lanjut terakhir oleh subbag tsb)
  */
@@ -140,21 +140,21 @@ router.get('/', authenticateToken, async (req, res) => {
     const client = await pool.connect();
     let query, params;
 
-    if (req.user.role === 'pegawai') {
+    if (req.user.role === 'pelapor') {
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
-        WHERE l.nik_pelapor = $1
+        JOIN users u ON u.nip = l.nip_pelapor
+        WHERE l.nip_pelapor = $1
         ORDER BY l.created_at DESC
       `;
-      params = [req.user.nik];
+      params = [req.user.nip];
     } else if (req.user.role === 'subbag_umum') {
       // Ambil laporan di mana tindak lanjut terakhir oleh user subbag ini
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
+        JOIN users u ON u.nip = l.nip_pelapor
         WHERE l.id_laporan IN (
           SELECT t1.id_laporan
           FROM tindak_lanjut t1
@@ -163,17 +163,17 @@ router.get('/', authenticateToken, async (req, res) => {
             FROM tindak_lanjut
             GROUP BY id_laporan
           ) t2 ON t1.id_laporan = t2.id_laporan AND t1.created_at = t2.max_created
-          WHERE t1.nik_subbag = $1
+          WHERE t1.nip_subbag = $1
         )
         ORDER BY l.created_at DESC
       `;
-      params = [req.user.nik];
+      params = [req.user.nip];
     } else {
       // Kabbag & admin bisa lihat semua
       query = `
         SELECT l.*, u.nama AS pelapor
         FROM laporan l
-        JOIN users u ON u.nik = l.nik_pelapor
+        JOIN users u ON u.nip = l.nip_pelapor
         ORDER BY l.created_at DESC
       `;
       params = [];
@@ -199,7 +199,7 @@ router.get('/:id_laporan', authenticateToken, async (req, res) => {
     const query = `
       SELECT l.*, u.nama AS pelapor
       FROM laporan l
-      JOIN users u ON u.nik = l.nik_pelapor
+      JOIN users u ON u.nip = l.nip_pelapor
       WHERE l.id_laporan = $1
     `;
     const result = await client.query(query, [id_laporan]);
@@ -230,9 +230,9 @@ router.put('/:id_laporan', authenticateToken, upload.single('lampiran'), async (
     await client.query('BEGIN');
 
     // Cek status laporan
-    const check = await client.query('SELECT * FROM laporan WHERE id_laporan = $1 AND nik_pelapor = $2', [
+    const check = await client.query('SELECT * FROM laporan WHERE id_laporan = $1 AND nip_pelapor = $2', [
       id_laporan,
-      req.user.nik,
+      req.user.nip,
     ]);
     if (check.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -264,7 +264,7 @@ router.put('/:id_laporan', authenticateToken, upload.single('lampiran'), async (
     await client.query(
       `INSERT INTO status_history (id_laporan, status, keterangan, changed_by)
        VALUES ($1, $2, $3, $4)`,
-      [id_laporan, 'diajukan', 'Laporan diperbarui oleh pelapor', req.user.nik]
+      [id_laporan, 'diajukan', 'Laporan diperbarui oleh pelapor', req.user.nip]
     );
 
     await client.query('COMMIT');
@@ -292,9 +292,9 @@ router.delete('/:id_laporan', authenticateToken, async (req, res) => {
     await client.query('BEGIN');
 
     // Cek status laporan
-    const check = await client.query('SELECT * FROM laporan WHERE id_laporan = $1 AND nik_pelapor = $2', [
+    const check = await client.query('SELECT * FROM laporan WHERE id_laporan = $1 AND nip_pelapor = $2', [
       id_laporan,
-      req.user.nik,
+      req.user.nip,
     ]);
     if (check.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -311,7 +311,7 @@ router.delete('/:id_laporan', authenticateToken, async (req, res) => {
     await client.query(
       `INSERT INTO status_history (id_laporan, status, keterangan, changed_by)
        VALUES ($1, $2, $3, $4)`,
-      [id_laporan, 'dihapus', 'Laporan dihapus oleh pelapor', req.user.nik]
+      [id_laporan, 'dihapus', 'Laporan dihapus oleh pelapor', req.user.nip]
     );
 
     await client.query('DELETE FROM laporan WHERE id_laporan=$1', [id_laporan]);

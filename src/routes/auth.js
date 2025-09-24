@@ -21,7 +21,7 @@ router.post('/login', async (req, res) => {
     const client = await pool.connect();
     
     // Query user by NIK or email
-    const query = 'SELECT * FROM users WHERE nik = $1 OR email = $1';
+    const query = 'SELECT * FROM users WHERE nip = $1 OR email = $1';
     const result = await client.query(query, [identifier]);
     client.release();
 
@@ -46,7 +46,7 @@ router.post('/login', async (req, res) => {
 
     // Create JWT token
     const tokenPayload = {
-      nik: user.nik,
+      nip: user.nip,
       nama: user.nama,
       email: user.email,
       jabatan: user.jabatan,
