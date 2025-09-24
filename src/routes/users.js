@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     const { role, jabatan } = req.query;
     const client = await pool.connect();
     
-    let query = 'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users';
+    let query = 'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users';
     let params = [];
     let conditions = [];
     
@@ -58,7 +58,7 @@ router.get('/by-role/:role', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       [role]
     );
     
@@ -69,6 +69,91 @@ router.get('/by-role/:role', async (req, res) => {
   }
 });
 
+// GET /api/users/bupati - Endpoint khusus untuk ambil daftar bupati
+router.get('/bupati', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['bupati']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar bupati', error: err.message });
+  }
+});
+
+// GET /api/users/wakil-bupati - Endpoint khusus untuk ambil daftar wakil bupati
+router.get('/wakil-bupati', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['wakil_bupati']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar wakil bupati', error: err.message });
+  }
+});
+
+// GET /api/users/asisten - Endpoint khusus untuk ambil daftar asisten
+router.get('/asisten', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['asisten']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar asisten', error: err.message });
+  }
+});
+
+// GET /api/users/staf-ahli - Endpoint khusus untuk ambil daftar staf ahli
+router.get('/staf-ahli', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['staf_ahli']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar staf ahli', error: err.message });
+  }
+});
+
+// GET /api/users/kabbag-umum - Endpoint khusus untuk ambil daftar kabbag umum
+router.get('/kabbag-umum', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['kabbag_umum']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar kabbag umum', error: err.message });
+  }
+});
+
 // GET /api/users/subbag-umum - Endpoint khusus untuk ambil daftar subbag umum
 router.get('/subbag-umum', async (req, res) => {
   console.log('--- Endpoint /api/users/subbag-umum diakses ---');
@@ -76,14 +161,14 @@ router.get('/subbag-umum', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['subbag_umum']
     );
     
     client.release();
     
-    // console.log('Jumlah data subbag_umum yang ditemukan:', result.rowCount);
-    // console.log('Data yang dikirim ke frontend:', result.rows);
+    console.log('Jumlah data subbag_umum yang ditemukan:', result.rowCount);
+    console.log('Data yang dikirim ke frontend:', result.rows);
     
     res.json(result.rows);
   } catch (err) {
@@ -98,7 +183,7 @@ router.get('/kabbag', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['kabbag']
     );
     
@@ -115,7 +200,7 @@ router.get('/pegawai', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE role = $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
       ['pegawai']
     );
     
@@ -123,6 +208,23 @@ router.get('/pegawai', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ message: 'Gagal memuat daftar pegawai', error: err.message });
+  }
+});
+
+// GET /api/users/opd - Endpoint khusus untuk ambil daftar opd
+router.get('/opd', async (req, res) => {
+  try {
+    const client = await pool.connect();
+    
+    const result = await client.query(
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE role = $1 ORDER BY nama ASC',
+      ['opd']
+    );
+    
+    client.release();
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ message: 'Gagal memuat daftar opd', error: err.message });
   }
 });
 
@@ -135,7 +237,7 @@ router.get('/bagian', async (req, res) => {
       { id: 3, name: 'Bagian Hukum', code: 'hukum' },
       { id: 4, name: 'Bagian Perekonomian & Sumber Daya Alam', code: 'perekonomian' },
       { id: 5, name: 'Bagian Administrasi Pembangunan', code: 'adpem' },
-      { id: 6, name: 'Bagian Pengadaian Barang & Jasa', code: 'pengadaan' },
+      { id: 6, name: 'Bagian Pengadaan Barang & Jasa', code: 'pengadaan' },
       { id: 7, name: 'Bagian Umum', code: 'umum' },
       { id: 8, name: 'Bagian Organisasi', code: 'organisasi' },
       { id: 9, name: 'Bagian Protokol Komunikasi & Pimpinan', code: 'protokol' },
@@ -155,7 +257,7 @@ router.get('/by-bagian/:bagian', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE jabatan ILIKE $1 ORDER BY nama ASC',
       [`%${bagian}%`]
     );
     
@@ -171,7 +273,7 @@ router.get('/me', authenticateToken, async (req, res) => {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE nik = $1',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE nik = $1',
       [req.user.nik]
     );
     client.release();
@@ -191,7 +293,7 @@ router.get('/:nik', async (req, res) => {
     const client = await pool.connect();
     
     const result = await client.query(
-      'SELECT nama, nik, email, role, jabatan, unit_kerja FROM users WHERE nik = $1',
+      'SELECT nama, nik, email, role, jabatan, unit_kerja, created_at FROM users WHERE nik = $1',
       [nik]
     );
     
@@ -211,8 +313,15 @@ router.get('/:nik', async (req, res) => {
 router.post('/', async (req, res) => {
   const { nama, nik, email, role, jabatan, unit_kerja, password } = req.body;
   
+  // Validasi input
   if (!nama || !nik || !email || !role || !password) {
     return res.status(400).json({ message: 'Nama, NIK, email, role, dan password wajib diisi' });
+  }
+
+  // Validasi role
+  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pegawai', 'opd'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Role tidak valid' });
   }
   
   try {
@@ -228,7 +337,7 @@ router.post('/', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     
     const result = await client.query(
-      'INSERT INTO users (nama, nik, email, role, jabatan, unit_kerja, password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING nama, nik, email, role, jabatan, unit_kerja ', 
+      'INSERT INTO users (nama, nik, email, role, jabatan, unit_kerja, password) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at', 
       [nama, nik, email, role, jabatan, unit_kerja || null, hashed]
     );
     
@@ -248,8 +357,15 @@ router.put('/:nik', async (req, res) => {
   const { nama, email, role, jabatan, unit_kerja, password } = req.body;
   const { nik } = req.params;
   
+  // Validasi input
   if (!nama || !email || !role) {
     return res.status(400).json({ message: 'Nama, email, dan role wajib diisi' });
+  }
+
+  // Validasi role
+  const validRoles = ['bupati', 'wakil_bupati', 'asisten', 'staf_ahli', 'kabbag_umum', 'subbag_umum', 'kabbag', 'pegawai', 'opd'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Role tidak valid' });
   }
   
   try {
@@ -266,10 +382,10 @@ router.put('/:nik', async (req, res) => {
     
     if (password) {
       const hashed = await bcrypt.hash(password, 10);
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5, password=$6 WHERE nik=$7 RETURNING nama, nik, email, role, jabatan, unit_kerja';
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5, password=$6 WHERE nik=$7 RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at';
       params = [nama, email, role, jabatan, unit_kerja || null, hashed, nik];
     } else {
-      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5 WHERE nik=$6 RETURNING nama, nik, email, role, jabatan, unit_kerja';
+      query = 'UPDATE users SET nama=$1, email=$2, role=$3, jabatan=$4, unit_kerja=$5 WHERE nik=$6 RETURNING nama, nik, email, role, jabatan, unit_kerja, created_at';
       params = [nama, email, role, jabatan, unit_kerja || null, nik];
     }
     
